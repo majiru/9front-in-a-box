@@ -23,6 +23,10 @@ let
     amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=./9front.qcow2,media=disk,if=virtio,index=0 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
     arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin  -drive file=./9front.qcow2,if=none,id=disk1 -drive file=$env(TARGET),index=1,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk1  -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
   }."${arch}";
+  qbin2 = {
+    amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
+    arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin -drive file=$env(TARGET),index=1,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
+  }."${arch}";
   preboot = {
     amd64 = ''
       expect "bootfile="
@@ -127,6 +131,60 @@ let
       send "finish\n"
       expect "done halting"
     '';
+  fixCwfsConfig = writeScript "expect.sh"
+    ''
+      #!${expect}/bin/expect -f
+      set timeout -1
+      set debug 5
+      spawn ${qbin2}
+      ${preboot}
+      expect "bootargs is"
+      send "!rc\n"
+      expect "%"
+      send "cwfs64x -C -c -f /dev/sdF0/fscache\n"
+      expect "config:"
+      send "filsys main c(/dev/sdF0/fscache)(/dev/sdF0/fsworm)\n"
+      expect "config:"
+      send "filsys other (/dev/sdF0/other)\n"
+      expect "config:"
+      send "filsys dump o\n"
+      expect "config:"
+      send "end\n"
+      expect "%"
+      send "exit\n"
+      expect "bootargs is"
+      send "local!/dev/sdF0/fscache\n"
+      expect "user"
+      send "\n"
+      expect "%"
+      send "9fs 9fat\n"
+      expect "%"
+      send "sed 's/sdG0/sdF0/g' /n/9/plan9.ini > /tmp/plan9.ini\n"
+      expect "%"
+      send "cp /tmp/plan9.ini /n/9/plan9.ini\n"
+      expect "%"
+      send "fshalt\n"
+      expect "done halting"
+    '';
+  fixHjfsConfig = writeScript "expect.sh"
+    ''
+      #!${expect}/bin/expect -f
+      set timeout -1
+      set debug 5
+      spawn ${qbin2}
+      ${preboot}
+      expect "bootargs is"
+      send "\n"
+      expect "user"
+      send "\n"
+      expect "%"
+      send "9fs 9fat\n"
+      expect "%"
+      send "echo 'console=0' >> /n/9/plan9.ini\n"
+      expect "%"
+      send "fshalt\n"
+      expect "done halting"
+    '';
 in
 stdenv.mkDerivation rec {
   pname = "vm-${fs}-${arch}";
@@ -146,11 +204,14 @@ stdenv.mkDerivation rec {
   buildPhase = {
     cwfs = ''
       mkdir -p $out
-      qemu-img create -f qcow2 $out/9front.qcow2 ${size}
-      TARGET="$out/9front.qcow2" ${expectScript}
+      qemu-img create -f qcow2 tmp.qcow2 ${size}
+      TARGET="tmp.qcow2" ${expectScript}
+      TARGET="tmp.qcow2" ${fixCwfsConfig}
+      mv tmp.qcow2 $out/9front.qcow2
     '';
     hjfs = ''
       mkdir -p $out
+      TARGET="9front.qcow2" ${fixHjfsConfig}
       mv 9front.qcow2 $out/
     '';
   }."${fs}";
