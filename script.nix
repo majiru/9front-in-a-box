@@ -3,6 +3,8 @@
 , run
 , vm
 , pkgsCross
+, qemu
+, drawterm
 
 , arch ? "amd64"
 , create ? "no"
@@ -15,16 +17,9 @@ writeScriptBin "run.sh"
     #!${rc}/bin/rc
 
     create=${create}
-    while(~ $1 -*){
-    switch($1){
-      case -c
-        create='yes'
-        shift
-      }
-    }
     if(~ $create 'yes'){
       ${run}/bin/run -arch ${arch} -create ${vm}/9front.qcow2
       exit
     }
-    ${run}/bin/run -uboot ${uboot}/u-boot.bin -arch ${arch} $*
+    ${run}/bin/run -qpath ${qemu}/bin -uboot ${uboot}/u-boot.bin -arch ${arch} -dt ${drawterm}/bin/drawterm $*
   ''

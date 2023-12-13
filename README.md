@@ -12,25 +12,6 @@ to be used generally for running 9front servers, but
 may serve as a good starting point for those interested
 in doing so.
 
-## Drawterm
-
-This flake does not provide a drawterm binary and thus must
-be part of your PATH when running these flakes. Due in part
-to there being many drawterm build configurations for X11
-vs wayland vs pulseaudio vs etc, and providing those tunables
-here as arguments was not something I was interested in. If
-you don't currently have a drawterm install, nixpkgs provides
-two default configurations:
-
-```
- # with nix-shell
- nix-shell -p drawterm # X11 + pulseaudio
- nix-shell -p drawterm-wayland # wayland + pipewire
- # or with nix shell
- nix shell 'nixpkgs#drawterm'
- nix shell 'nixpkgs#drawterm-wayland'
-```
-
 ## Setup
 
 The vms are configured in a way where a read only "parent"
@@ -68,3 +49,20 @@ also is capable of running the arm64 virtual machines of 9front as well.
 These different configurations are exposed via different packages, the convention
 is `setup-vm-$FS-$ARCH`  and `run-vm-$FS-$ARCH`. So to run a cwfs arm64 install you
 may use `run-vm-cwfs-arm64`.
+
+
+### Drawterm
+
+Drawterm is the graphical program used to connect to the virtual machine.
+This flake will use a copy of drawterm from nixpkgs that is built for
+X11 and pulseaudio. Nixpkgs also contains a drawterm build (`drawterm-wayland`) for wayland
+and pipewire. The drawterm binary used by `run-vm` may be changed by passing a `-dt` flag.
+
+```
+ # Use the wayland drawterm
+ nix-shell -p drawterm-wayland
+ # or with nix shell
+ nix shell 'nixpkgs#drawterm-wayland'
+
+ nix run 'github:majiru/9front-in-a-box#run-vm' -- -dt drawterm
+```

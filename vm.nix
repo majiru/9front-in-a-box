@@ -25,7 +25,7 @@ let
   }."${arch}";
   qbin2 = {
     amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
-    arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin -drive file=$env(TARGET),index=1,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
+    arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin -drive file=$env(TARGET),index=0,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
   }."${arch}";
   preboot = {
     amd64 = ''
@@ -215,5 +215,13 @@ stdenv.mkDerivation rec {
       mv 9front.qcow2 $out/
     '';
   }."${fs}";
+
+  meta = with lib; {
+    description = "9front-in-a-box vm";
+    homepage = "https://github/majiru/9front-in-a-box/";
+    license = licenses.mit;
+    maintainers = with maintainers; [ moody ];
+  };
+
 }
 
