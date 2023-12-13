@@ -38,6 +38,27 @@ let
     '';
     arm64 = "";
   }."${arch}";
+  postinst = {
+    amd64 = "";
+    arm64 = ''
+      send "!rc\n"
+      expect "%"
+      send "mount -c /srv/dos /n/9fat /dev/sdG0/9fat\n"
+      expect "%"
+      send "mount -c /srv/dos /n/old9fat /dev/sdF0/dos\n"
+      expect "%"
+      send "cp /n/old9fat/9qemu.u /n/9fat/\n"
+      expect "%"
+      send "cp /n/old9fat/boot.scr /n/9fat/\n"
+      expect "%"
+      send "unmount /n/9fat\n"
+      expect "%"
+      send "unmount /n/old9fat\n"
+      expect "%"
+      send "exit\n"
+      expect "Task to do"
+    '';
+  }."${arch}";
   expectScript = writeScript "expect.sh"
     ''
       #!${expect}/bin/expect -f
@@ -127,6 +148,8 @@ let
       expect "Mark the Plan 9"
       send "yes\n"
       expect "Task to do"
+
+      ${postinst}
 
       send "finish\n"
       expect "done halting"
