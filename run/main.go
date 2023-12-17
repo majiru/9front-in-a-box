@@ -118,7 +118,7 @@ func main() {
 	}()
 	go func() {
 		time.Sleep(2 * time.Second)
-		exec.Command(*drawtermFlag, "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "rio").Run()
+		exec.Command(*drawtermFlag, "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
 		exitch <- struct{}{}
 	}()
 	<-exitch
