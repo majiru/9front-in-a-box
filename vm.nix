@@ -9,11 +9,19 @@
 , fs ? "hjfs"
 , size ? "50G"
 , arch ? "amd64"
+, release ? "10277"
+, sourceType ? {
+    amd64 = "qcow2";
+    arm64 = "qcow2";
+    "386" = "iso";
+  }.${arch}
+, sourceUrl ? "https://iso.only9fans.com/release"
 , source ? fetchurl {
-    url = "https://iso.only9fans.com/release/9front-10277.${arch}.qcow2.gz";
+    url = "${sourceUrl}/9front-${release}.${arch}.${sourceType}.gz";
     hash = {
       amd64 = "sha256-9NaYKc58zKQJC8gPL6a3cRSP+U+OFhCgUCqG2FSGGjE=";
       arm64 = "sha256-GUkJG2dJl9QK7Gl09PFjTE/vweZ4euKQtgS2sTtDH+Y=";
+      "386" = "sha256-oEoOxxea/8PBKJ8050jk+2AbkSTeS1A2AxgR8cQyH1U=";
     }."${arch}";
   }
 }:
@@ -22,10 +30,23 @@ let
   qbin = {
     amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=./9front.qcow2,media=disk,if=virtio,index=0 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
     arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin  -drive file=./9front.qcow2,if=none,id=disk1 -drive file=$env(TARGET),index=1,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk1  -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
+    "386" = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=./9front.iso,media=cdrom -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
   }."${arch}";
   qbin2 = {
     amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
     arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin -drive file=$env(TARGET),index=0,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
+    "386" = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
+  }."${arch}";
+
+  disks.inst = {
+    arm64 = "sdG0";
+    amd64 = "sdG0";
+    "386" = "sdF0";
+  }."${arch}";
+  disks.final = {
+    arm64 = "sdF0";
+    amd64 = "sdF0";
+    "386" = "sdF0";
   }."${arch}";
   preboot = {
     amd64 = ''
@@ -37,9 +58,20 @@ let
       send "boot\n"
     '';
     arm64 = "";
+    "386" = ''
+      expect "bootfile="
+      send "\n"
+      expect ">"
+      send "console=0\n"
+      expect ">"
+      send "vgasize=text\n"
+      expect ">"
+      send "boot\n"
+    '';
   }."${arch}";
   postinst = {
     amd64 = "";
+    "386" = "";
     arm64 = ''
       send "!rc\n"
       expect "%"
@@ -82,7 +114,7 @@ let
 
       send "partdisk\n"
       expect "Disk to partition"
-      send "sdG0\n"
+      send "${disks.inst}\n"
       expect "Install mbr"
       send "mbr\n"
       expect ">>>"
@@ -93,7 +125,7 @@ let
 
       send "prepdisk\n"
       expect "Plan 9 partition"
-      send "/dev/sdG0/plan9\n"
+      send "/dev/${disks.inst}/plan9\n"
       expect ">>>"
       send "w\n"
       expect ">>>"
@@ -102,11 +134,11 @@ let
 
       send "mountfs\n"
       expect "Cwfs cache partition"
-      send "/dev/sdG0/fscache\n"
+      send "/dev/${disks.inst}/fscache\n"
       expect "Cwfs worm partition"
-      send "/dev/sdG0/fsworm\n"
+      send "/dev/${disks.inst}/fsworm\n"
       expect "Cwfs other partition"
-      send "/dev/sdG0/other\n"
+      send "/dev/${disks.inst}/other\n"
       expect "Ream the filesystem"
       send "yes\n"
       expect "Task to do"
@@ -142,7 +174,7 @@ let
 
       send "bootsetup\n"
       expect "Plan 9 FAT partition"
-      send "/dev/sdG0/9fat\n"
+      send "/dev/${disks.inst}/9fat\n"
       expect "Install the Plan 9 master"
       send "yes\n"
       expect "Mark the Plan 9"
@@ -164,11 +196,11 @@ let
       expect "bootargs is"
       send "!rc\n"
       expect "%"
-      send "cwfs64x -C -c -f /dev/sdF0/fscache\n"
+      send "cwfs64x -C -c -f /dev/${disks.final}/fscache\n"
       expect "config:"
-      send "filsys main c(/dev/sdF0/fscache)(/dev/sdF0/fsworm)\n"
+      send "filsys main c(/dev/${disks.final}/fscache)(/dev/${disks.final}/fsworm)\n"
       expect "config:"
-      send "filsys other (/dev/sdF0/other)\n"
+      send "filsys other (/dev/${disks.final}/other)\n"
       expect "config:"
       send "filsys dump o\n"
       expect "config:"
@@ -176,13 +208,13 @@ let
       expect "%"
       send "exit\n"
       expect "bootargs is"
-      send "local!/dev/sdF0/fscache\n"
+      send "local!/dev/${disks.final}/fscache\n"
       expect "user"
       send "\n"
       expect "%"
       send "9fs 9fat\n"
       expect "%"
-      send "sed 's/sdG0/sdF0/g' /n/9/plan9.ini > /tmp/plan9.ini\n"
+      send "sed 's/${disks.inst}/${disks.final}/g' /n/9/plan9.ini > /tmp/plan9.ini\n"
       expect "%"
       send "cp /tmp/plan9.ini /n/9/plan9.ini\n"
       expect "%"
@@ -205,6 +237,10 @@ let
       expect "%"
       send "echo 'console=0' >> /n/9/plan9.ini\n"
       expect "%"
+      send "sed '/#m/d' /usr/glenda/lib/profile > /tmp/profile\n"
+      expect "%"
+      send "cp /tmp/profile /usr/glenda/lib/profile\n"
+      expect "%"
       send "fshalt\n"
       expect "done halting"
     '';
@@ -221,7 +257,7 @@ stdenv.mkDerivation rec {
   src = source;
 
   unpackPhase = ''
-    gunzip -c ${src} > 9front.qcow2
+    gunzip -c ${src} > 9front.${sourceType}
   '';
 
   buildPhase = {
@@ -232,11 +268,17 @@ stdenv.mkDerivation rec {
       TARGET="tmp.qcow2" ${fixCwfsConfig}
       mv tmp.qcow2 $out/9front.qcow2
     '';
-    hjfs = ''
+    hjfs = (if arch != "386" then ''
       mkdir -p $out
       TARGET="9front.qcow2" ${fixHjfsConfig}
       mv 9front.qcow2 $out/
-    '';
+    ''
+    else ''
+      mkdir -p $out
+      qemu-img create -f qcow2 tmp.qcow2 ${size}
+      TARGET="tmp.qcow2" ${expectScript}
+      mv tmp.qcow2 $out/9front.qcow2
+    '');
   }."${fs}";
 
   meta = with lib; {

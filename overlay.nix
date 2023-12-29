@@ -3,7 +3,7 @@ let
   callPackage = prev.lib.callPackageWith prev;
 
   fsOpts = [ "hjfs" "cwfs" ];
-  archOpts = [ "amd64" "arm64" ];
+  archOpts = [ "amd64" "arm64" "386" ];
 
   run = callPackage (./run) { };
 

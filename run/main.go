@@ -61,6 +61,19 @@ func qemuCmd() []string {
 			"user,hostfwd=tcp::17019-:17019,model=virtio-net-pci-non-transitional",
 			"-nographic",
 		},
+		"386": {
+			filepath.Join(*qpathFlag, "qemu-system-x86_64"),
+			"-nic",
+			"user,hostfwd=tcp::17019-:17019",
+			"-enable-kvm",
+			"-m",
+			*ramFlag,
+			"-smp",
+			*cpuFlag,
+			"-drive",
+			"file=9front.386.qcow2,media=disk,if=virtio,index=0",
+			"-nographic",
+		},
 	}
 	r, ok := m[*archFlag]
 	if !ok {
