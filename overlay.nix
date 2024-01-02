@@ -35,10 +35,11 @@ let
 
   allrun = map (a: { name = "run-${a.name}"; value = mkrun { vm = a.value; arch = a.arch; }; }) allvm;
 
-  pkgs = allvm ++ allsetup ++ allrun;
+  mame = { mame = prev.libsForQt5.callPackage (./mame) { }; };
 
+  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // mame;
 in
 {
-  vm9 = builtins.listToAttrs pkgs;
+  vm9 = pkgs;
 }
 
