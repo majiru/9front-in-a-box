@@ -37,7 +37,9 @@ let
 
   mame = { mame = prev.libsForQt5.callPackage (./mame) { }; };
 
-  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // mame;
+  _9vx = { _9vx = callPackage (./9vx) { }; };
+
+  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // mame // _9vx;
 in
 {
   vm9 = pkgs;
