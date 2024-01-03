@@ -1,4 +1,6 @@
-{ lib
+{ qemu
+, makeWrapper
+, lib
 , buildGoModule
 }:
 buildGoModule {
@@ -8,6 +10,11 @@ buildGoModule {
   src = ./.;
 
   vendorHash = "sha256-f1qukX/vDd+dehv9y9pv0NqNt6D/LWZ3ufeJOsqvG2Y=";
+
+  nativeBuildInputs = [ makeWrapper ];
+  postFixup = ''
+    wrapProgram $out/bin/run --prefix PATH : ${lib.makeBinPath [ qemu ]}
+  '';
 
   meta = with lib; {
     description = "Manages the 9front-in-a-box vm";
