@@ -35,9 +35,18 @@ let
 
   allrun = map (a: { name = "run-${a.name}"; value = mkrun { vm = a.value; inherit (a) arch; }; }) allvm;
 
+  mk9frontfs = { arch }:
+    callPackage (./9front-fs.nix) { fetchurl = prev.fetchurl; inherit arch; };
+
+  all9frontfs = map (arch: { name = "_9front-fs-${arch}"; value = mk9frontfs {  inherit arch; }; }) archOpts;
+
   mame = { mame = prev.libsForQt5.callPackage (./mame) { }; };
 
-  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // mame;
+  _9vx = { _9vx = callPackage (./9vx) { }; };
+
+  nine = { nine = callPackage (./nine) { }; };
+
+  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun ++ all9frontfs)) // mame // _9vx // nine;
 in
 {
   vm9 = pkgs;
