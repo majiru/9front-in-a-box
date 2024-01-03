@@ -16,14 +16,7 @@
     "386" = "iso";
   }.${arch}
 , sourceUrl ? "https://iso.only9fans.com/release"
-, source ? fetchurl {
-    url = "${sourceUrl}/9front-${release}.${arch}.${sourceType}.gz";
-    hash = {
-      amd64 = "sha256-9NaYKc58zKQJC8gPL6a3cRSP+U+OFhCgUCqG2FSGGjE=";
-      arm64 = "sha256-GUkJG2dJl9QK7Gl09PFjTE/vweZ4euKQtgS2sTtDH+Y=";
-      "386" = "sha256-oEoOxxea/8PBKJ8050jk+2AbkSTeS1A2AxgR8cQyH1U=";
-    }."${arch}";
-  }
+, source ? (import ./9front-src.nix { inherit fetchurl arch release sourceType sourceUrl; })
 }:
 let
   uboot = pkgsCross.aarch64-multiplatform.ubootQemuAarch64;
