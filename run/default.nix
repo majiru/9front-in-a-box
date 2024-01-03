@@ -1,4 +1,5 @@
-{ pkgs
+{ qemu
+, makeWrapper
 , lib
 , buildGoModule
 }:
@@ -10,9 +11,9 @@ buildGoModule {
 
   vendorHash = "sha256-f1qukX/vDd+dehv9y9pv0NqNt6D/LWZ3ufeJOsqvG2Y=";
 
-  nativeBuildInputs = [ pkgs.makeWrapper ];
+  nativeBuildInputs = [ makeWrapper ];
   postFixup = ''
-    wrapProgram $out/bin/run --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.qemu ]}
+    wrapProgram $out/bin/run --prefix PATH : ${lib.makeBinPath [ qemu ]}
   '';
 
   meta = with lib; {
