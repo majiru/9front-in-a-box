@@ -22,18 +22,18 @@ let
       archOpts)
     ++
     (map
-      (a: { name = "vm-${a.fs}-${a.arch}"; value = mkvm { fs = a.fs; arch = a.arch; }; arch = a.arch; })
+      (a: { name = "vm-${a.fs}-${a.arch}"; value = mkvm { inherit (a) fs; inherit (a) arch; }; inherit (a) arch; })
       (prev.lib.attrsets.cartesianProductOfSets { fs = fsOpts; arch = archOpts; }));
 
   mksetup = { vm, arch }:
-    callPackage (./script.nix) { run = run; create = "yes"; inherit vm arch; };
+    callPackage (./script.nix) { create = "yes"; inherit run vm arch; };
 
-  allsetup = map (a: { name = "setup-${a.name}"; value = mksetup { vm = a.value; arch = a.arch; }; }) allvm;
+  allsetup = map (a: { name = "setup-${a.name}"; value = mksetup { vm = a.value; inherit (a) arch; }; }) allvm;
 
   mkrun = { vm, arch }:
-    callPackage (./script.nix) { run = run; inherit vm arch; };
+    callPackage (./script.nix) { inherit run; inherit vm arch; };
 
-  allrun = map (a: { name = "run-${a.name}"; value = mkrun { vm = a.value; arch = a.arch; }; }) allvm;
+  allrun = map (a: { name = "run-${a.name}"; value = mkrun { vm = a.value; inherit (a) arch; }; }) allvm;
 
   mame = { mame = prev.libsForQt5.callPackage (./mame) { }; };
 

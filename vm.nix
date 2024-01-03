@@ -268,7 +268,7 @@ stdenv.mkDerivation rec {
       TARGET="tmp.qcow2" ${fixCwfsConfig}
       mv tmp.qcow2 $out/9front.qcow2
     '';
-    hjfs = (if arch != "386" then ''
+    hjfs = if arch != "386" then ''
       mkdir -p $out
       TARGET="9front.qcow2" ${fixHjfsConfig}
       mv 9front.qcow2 $out/
@@ -278,7 +278,7 @@ stdenv.mkDerivation rec {
       qemu-img create -f qcow2 tmp.qcow2 ${size}
       TARGET="tmp.qcow2" ${expectScript}
       mv tmp.qcow2 $out/9front.qcow2
-    '');
+    '';
   }."${fs}";
 
   meta = with lib; {
