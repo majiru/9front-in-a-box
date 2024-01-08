@@ -145,7 +145,9 @@ func main() {
 	exp.Expect(regexp.MustCompile("%"), -1)
 	exp.Send("ip/ipconfig ether /net/ether0\n")
 	exp.Expect(regexp.MustCompile("%"), -1)
-	exp.Send("cat /net/ndb\n")
+	if *debugFlag {
+		exp.Send("cat /net/ndb\n")
+	}
 	exp.Expect(regexp.MustCompile("%"), -1)
 	exp.Send("aux/listen1 -t 'tcp!*!17019' /rc/bin/service/tcp17019 &\n")
 
@@ -159,7 +161,7 @@ func main() {
 	go func() {
 		time.Sleep(2 * time.Second)
 		exec.Command(*drawtermFlag, "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
-		// exitch <- struct{}{}
+		exitch <- struct{}{}
 	}()
 	<-exitch
 	exp.Send("fshalt\n")
