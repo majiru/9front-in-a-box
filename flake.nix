@@ -12,7 +12,7 @@
       name = "vm9";
       overlay = ./overlay.nix;
     };
-    nixosModules = {
-      default = ./nixosModule.nix;
-    };
+    # nixosModules = {
+    #   default = ./nixosModule.nix;
+    # };
 }
