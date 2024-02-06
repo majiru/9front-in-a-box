@@ -83,6 +83,8 @@ let
       expect "%"
       send "cp /n/old9fat/boot.scr /n/9fat/\n"
       expect "%"
+      send "echo '*maxmem=0xa0000000' >> /n/9fat/plan9.ini\n"
+      expect "%"
       send "unmount /n/9fat\n"
       expect "%"
       send "unmount /n/old9fat\n"
@@ -218,6 +220,10 @@ let
       expect "%"
       send "cp /tmp/plan9.ini /n/9/plan9.ini\n"
       expect "%"
+      send "sed '/#m/d' /usr/glenda/lib/profile > /tmp/profile\n"
+      expect "%"
+      send "mv /tmp/profile /usr/glenda/lib/profile\n"
+      expect "%"
       send "fshalt\n"
       expect "done halting"
     '';
@@ -239,7 +245,7 @@ let
       expect "%"
       send "sed '/#m/d' /usr/glenda/lib/profile > /tmp/profile\n"
       expect "%"
-      send "cp /tmp/profile /usr/glenda/lib/profile\n"
+      send "mv /tmp/profile /usr/glenda/lib/profile\n"
       expect "%"
       send "fshalt\n"
       expect "done halting"
@@ -268,17 +274,18 @@ stdenv.mkDerivation rec {
       TARGET="tmp.qcow2" ${fixCwfsConfig}
       mv tmp.qcow2 $out/9front.qcow2
     '';
-    hjfs = if arch != "386" then ''
-      mkdir -p $out
-      TARGET="9front.qcow2" ${fixHjfsConfig}
-      mv 9front.qcow2 $out/
-    ''
-    else ''
-      mkdir -p $out
-      qemu-img create -f qcow2 tmp.qcow2 ${size}
-      TARGET="tmp.qcow2" ${expectScript}
-      mv tmp.qcow2 $out/9front.qcow2
-    '';
+    hjfs =
+      if arch != "386" then ''
+        mkdir -p $out
+        TARGET="9front.qcow2" ${fixHjfsConfig}
+        mv 9front.qcow2 $out/
+      ''
+      else ''
+        mkdir -p $out
+        qemu-img create -f qcow2 tmp.qcow2 ${size}
+        TARGET="tmp.qcow2" ${expectScript}
+        mv tmp.qcow2 $out/9front.qcow2
+      '';
   }."${fs}";
 
   meta = with lib; {
