@@ -1,6 +1,6 @@
 final: prev:
 let
-  callPackage = prev.lib.callPackageWith prev;
+  callPackage = final.callPackage;
 
   fsOpts = [ "hjfs" "cwfs" ];
   archOpts = [ "amd64" "arm64" "386" ];
