@@ -9,7 +9,7 @@
 , fs ? "hjfs"
 , size ? "50G"
 , arch ? "amd64"
-, release ? "10277"
+, release ? "10522"
 , sourceType ? {
     amd64 = "qcow2";
     arm64 = "qcow2";
@@ -19,9 +19,9 @@
 , source ? fetchurl {
     url = "${sourceUrl}/9front-${release}.${arch}.${sourceType}.gz";
     hash = {
-      amd64 = "sha256-9NaYKc58zKQJC8gPL6a3cRSP+U+OFhCgUCqG2FSGGjE=";
-      arm64 = "sha256-GUkJG2dJl9QK7Gl09PFjTE/vweZ4euKQtgS2sTtDH+Y=";
-      "386" = "sha256-oEoOxxea/8PBKJ8050jk+2AbkSTeS1A2AxgR8cQyH1U=";
+      amd64 = "sha256-VFUNCdg6qCI8BDqx6V0/bQi3gcCJrA1oSEjGmk4D40c=";
+      arm64 = "sha256-pgQOh6lzi0Svk5TAdjhM9l8Q4+epGYv8d13qougcXCc=";
+      "386" = "sha256-HJ/6p3nm0jmre+b6zqAOM45jzYp8oQGwx2lS1lBWVwU=";
     }."${arch}";
   }
 }:
@@ -83,8 +83,6 @@ let
       expect "%"
       send "cp /n/old9fat/boot.scr /n/9fat/\n"
       expect "%"
-      send "echo '*maxmem=0xa0000000' >> /n/9fat/plan9.ini\n"
-      expect "%"
       send "unmount /n/9fat\n"
       expect "%"
       send "unmount /n/old9fat\n"
@@ -143,11 +141,6 @@ let
       send "/dev/${disks.inst}/other\n"
       expect "Ream the filesystem"
       send "yes\n"
-      expect "Task to do"
-
-      send "configdist\n"
-      expect "Distribution is from"
-      send "local\n"
       expect "Task to do"
 
       send "confignet\n"
