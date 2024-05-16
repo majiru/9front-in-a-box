@@ -17,19 +17,38 @@ import (
 
 var (
 	ramFlag      = flag.String("m", "4G", "memory for qemu virtual machine")
-	cpuFlag      = flag.String("cpu", "4", "number of cored for virtual machines")
-	createFlag   = flag.String("create", "", "create a new 9front.qcow2 in the cwd ")
+	cpuFlag      = flag.String("cpu", "4", "number of cores for virtual machine")
+	createFlag   = flag.String("create", "", "create a new 9front.qcow2 in the cwd")
 	debugFlag    = flag.Bool("debug", false, "enable debug output")
-	archFlag     = flag.String("arch", "amd64", "architechture of vm")
+	archFlag     = flag.String("arch", "amd64", "architechture of vm [amd64 arm64 386]")
+	passwordFlag = flag.String("password", "password", "password of the glenda user")
 	ubootFlag    = flag.String("uboot", "u-boot.bin", "uboot binary for arm64")
+	qcowFlag     = flag.String("qcow", "", "location of .qcow2 file")
 	qpathFlag    = flag.String("qpath", "", "location of qemu binaries")
 	drawtermFlag = flag.String("dt", "drawterm", "drawterm binary")
 )
+
+// panics with error message
+func validateFlags() {
+	// NOTE other flags could be validated in future versions too
+	if len(*passwordFlag) < 8 {
+		fmt.Fprintln(os.Stderr, "password must be of lenght greater then seven characters.")
+		os.Exit(1)
+	}
+
+	if *qcowFlag == "" {
+		*qcowFlag = "./9front." + *archFlag + ".qcow2"
+	}
+}
 
 func qemuCmd() []string {
 	m := map[string][]string{
 		"amd64": {
 			filepath.Join(*qpathFlag, "qemu-system-x86_64"),
+			// "-net",
+			// "nic,model=virtio,macaddr=52:54:00:00:00:01",
+			// "-net",
+			// "bridge,br=br1",
 			"-nic",
 			"user,hostfwd=tcp::17019-:17019",
 			"-enable-kvm",
@@ -38,7 +57,7 @@ func qemuCmd() []string {
 			"-smp",
 			*cpuFlag,
 			"-drive",
-			"file=9front.amd64.qcow2,media=disk,if=virtio,index=0",
+			"file=" + *qcowFlag + ",media=disk,if=virtio,index=0",
 			"-nographic",
 		},
 		"arm64": {
@@ -54,11 +73,15 @@ func qemuCmd() []string {
 			"-bios",
 			*ubootFlag,
 			"-drive",
-			"file=9front.arm64.qcow2,if=none,id=disk",
+			"file=" + *qcowFlag + ",if=none,id=disk",
 			"-device",
 			"virtio-blk-pci-non-transitional,drive=disk",
-			"-nic",
+			"-nic",      
 			"user,hostfwd=tcp::17019-:17019,model=virtio-net-pci-non-transitional",
+			// "-net",
+			// "nic,model=virtio-net-pci-non-transitional,macaddr=52:54:00:00:00:02",
+			// "-net",
+			// "bridge,br=br1",
 			"-nographic",
 		},
 		"386": {
@@ -71,7 +94,7 @@ func qemuCmd() []string {
 			"-smp",
 			*cpuFlag,
 			"-drive",
-			"file=9front.386.qcow2,media=disk,if=virtio,index=0",
+			"file=" + *qcowFlag + ",media=disk,if=virtio,index=0",
 			"-nographic",
 		},
 	}
@@ -84,17 +107,18 @@ func qemuCmd() []string {
 
 func main() {
 	flag.Parse()
+	validateFlags()
 
-	qcow := "9front." + *archFlag + ".qcow2"
 	if *createFlag != "" {
-		err := exec.Command("qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-o", "backing_file="+*createFlag, qcow).Run()
+		err := exec.Command(filepath.Join(*qpathFlag, "qemu-img"), "create", "-f", "qcow2", "-F", "qcow2", "-o", "backing_file="+*createFlag, *qcowFlag).Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 		os.Exit(0)
 	}
-	if _, err := os.Stat(qcow); err != nil {
-		fmt.Fprintf(os.Stderr, "could not find %s\n", qcow)
+
+	if _, err := os.Stat(*qcowFlag); err != nil {
+		fmt.Fprintf(os.Stderr, "could not find %s\n", *qcowFlag)
 		os.Exit(1)
 	}
 
@@ -108,6 +132,7 @@ func main() {
 	}
 	defer exp.Close()
 
+	exp.Options(expect.Tee(os.Stderr))
 	if *debugFlag {
 		exp.Options(expect.Tee(os.Stdout))
 	}
@@ -116,9 +141,13 @@ func main() {
 	exp.Expect(regexp.MustCompile("user"), -1)
 	exp.Send("\n")
 	exp.Expect(regexp.MustCompile("%"), -1)
-	exp.Send(`echo 'key proto=dp9ik dom=9front user=glenda !password=password' >/mnt/factotum/ctl` + "\n")
+	exp.Send(`echo 'key proto=dp9ik dom=9front user=glenda !password=` + *passwordFlag + `' >/mnt/factotum/ctl` + "\n")
 	exp.Expect(regexp.MustCompile("%"), -1)
 	exp.Send("ip/ipconfig ether /net/ether0\n")
+	exp.Expect(regexp.MustCompile("%"), -1)
+	if *debugFlag {
+		exp.Send("cat /net/ndb\n")
+	}
 	exp.Expect(regexp.MustCompile("%"), -1)
 	exp.Send("aux/listen1 -t 'tcp!*!17019' /rc/bin/service/tcp17019 &\n")
 
