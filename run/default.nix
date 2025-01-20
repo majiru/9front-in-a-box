@@ -1,7 +1,8 @@
-{ qemu
-, makeWrapper
-, lib
-, buildGoModule
+{
+  qemu,
+  makeWrapper,
+  lib,
+  buildGoModule,
 }:
 buildGoModule {
   pname = "run";

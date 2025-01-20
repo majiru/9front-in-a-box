@@ -1,37 +1,38 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, alsa-lib
-, SDL2
-, SDL2_ttf
-, copyDesktopItems
-, expat
-, flac
-, fontconfig
-, glm
-, installShellFiles
-, libXi
-, libXinerama
-, libjpeg
-, libpcap
-, libpulseaudio
-, makeDesktopItem
-, makeWrapper
-, papirus-icon-theme
-, pkg-config
-, portaudio
-, portmidi
-, pugixml
-, python3
-, qtbase
-, rapidjson
-, sqlite
-, utf8proc
-, which
-, writeScript
-, zlib
-, darwin
-, fetchurl
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  alsa-lib,
+  SDL2,
+  SDL2_ttf,
+  copyDesktopItems,
+  expat,
+  flac,
+  fontconfig,
+  glm,
+  installShellFiles,
+  libXi,
+  libXinerama,
+  libjpeg,
+  libpcap,
+  libpulseaudio,
+  makeDesktopItem,
+  makeWrapper,
+  papirus-icon-theme,
+  pkg-config,
+  portaudio,
+  portmidi,
+  pugixml,
+  python3,
+  qtbase,
+  rapidjson,
+  sqlite,
+  utf8proc,
+  which,
+  writeScript,
+  zlib,
+  darwin,
+  fetchurl,
 }:
 
 let
@@ -78,24 +79,35 @@ stdenv.mkDerivation {
   dontWrapQtApps = true;
 
   # https://docs.mamedev.org/initialsetup/compilingmame.html
-  buildInputs = [
-    expat
-    zlib
-    flac
-    portmidi
-    portaudio
-    utf8proc
-    libjpeg
-    rapidjson
-    pugixml
-    glm
-    SDL2
-    SDL2_ttf
-    sqlite
-    qtbase
-  ]
-  ++ lib.optionals stdenv.isLinux [ alsa-lib libpulseaudio libXinerama libXi fontconfig ]
-  ++ lib.optionals stdenv.isDarwin [ libpcap CoreAudioKit ForceFeedback ];
+  buildInputs =
+    [
+      expat
+      zlib
+      flac
+      portmidi
+      portaudio
+      utf8proc
+      libjpeg
+      rapidjson
+      pugixml
+      glm
+      SDL2
+      SDL2_ttf
+      sqlite
+      qtbase
+    ]
+    ++ lib.optionals stdenv.isLinux [
+      alsa-lib
+      libpulseaudio
+      libXinerama
+      libXi
+      fontconfig
+    ]
+    ++ lib.optionals stdenv.isDarwin [
+      libpcap
+      CoreAudioKit
+      ForceFeedback
+    ];
 
   nativeBuildInputs = [
     copyDesktopItems
@@ -130,8 +142,15 @@ stdenv.mkDerivation {
       type = "Application";
       genericName = "MAME is a multi-purpose emulation framework";
       comment = "Play vintage games using the MAME emulator";
-      categories = [ "Game" "Emulator" ];
-      keywords = [ "Game" "Emulator" "Arcade" ];
+      categories = [
+        "Game"
+        "Emulator"
+      ];
+      keywords = [
+        "Game"
+        "Emulator"
+        "Arcade"
+      ];
     })
   ];
 
@@ -184,7 +203,10 @@ stdenv.mkDerivation {
       calculators, in addition to the arcade video games that were its initial
       focus.
     '';
-    license = with licenses; [ bsd3 gpl2Plus ];
+    license = with licenses; [
+      bsd3
+      gpl2Plus
+    ];
     maintainers = with maintainers; [ moody ];
     platforms = platforms.unix;
     broken = stdenv.isDarwin;
