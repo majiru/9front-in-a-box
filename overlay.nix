@@ -5,6 +5,7 @@ let
   fsOpts = [
     "hjfs"
     "cwfs"
+    "gefs"
   ];
   archOpts = [
     "amd64"
@@ -49,7 +50,7 @@ let
         inherit (a) arch;
       })
       (
-        prev.lib.attrsets.cartesianProductOfSets {
+        prev.lib.attrsets.cartesianProduct {
           fs = fsOpts;
           arch = archOpts;
         }

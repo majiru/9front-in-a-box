@@ -110,6 +110,28 @@ let
       '';
     }
     ."${arch}";
+  partSelect =
+    {
+      cwfs = ''
+        expect "Cwfs cache partition"
+        send "/dev/${disks.inst}/fscache\n"
+        expect "Cwfs worm partition"
+        send "/dev/${disks.inst}/fsworm\n"
+        expect "Cwfs other partition"
+        send "/dev/${disks.inst}/other\n"
+      '';
+      hjfs = ''
+        expect "Hjfs partition"
+        send "/dev/${disks.inst}/fs\n"
+        expect "Size of RAM filesystem"
+        send "\n"
+      '';
+      gefs = ''
+        expect "Gefs partition"
+        send "/dev/${disks.inst}/fs\n"
+      '';
+    }
+    ."${fs}";
   expectScript = writeScript "expect.sh" ''
     #!${expect}/bin/expect -f
     set timeout -1
@@ -127,7 +149,7 @@ let
 
     send "configfs\n"
     expect "File system"
-    send "\n"
+    send "${if fs == "cwfs" then "cwfs64x" else fs}\n"
     expect "Task to do"
 
     send "partdisk\n"
@@ -151,12 +173,7 @@ let
     expect "Task to do"
 
     send "mountfs\n"
-    expect "Cwfs cache partition"
-    send "/dev/${disks.inst}/fscache\n"
-    expect "Cwfs worm partition"
-    send "/dev/${disks.inst}/fsworm\n"
-    expect "Cwfs other partition"
-    send "/dev/${disks.inst}/other\n"
+    ${partSelect}
     expect "Ream the filesystem"
     send "yes\n"
     expect "Task to do"
@@ -196,6 +213,35 @@ let
 
     ${postinst}
 
+    ${
+      if disks.final != disks.inst then
+        ''
+          send "!rc\n"
+          expect "%"
+          send "mount -c /srv/dos /n/9 /dev/${disks.inst}/9fat\n"
+          expect "%"
+          send "sed 's/${disks.inst}/${disks.final}/g' /n/9/plan9.ini >/tmp/plan9.ini\n"
+          expect "%"
+          send "mv /tmp/plan9.ini /n/9/plan9.ini\n"
+          expect "%"
+          send "unmount /n/9\n"
+          expect "%"
+          send "exit\n"
+          expect "Task to do"
+        ''
+      else
+        ""
+    }
+
+    send "!rc\n"
+    expect "%"
+    send "sed '/#m/d' /n/newfs/usr/glenda/lib/profile > /tmp/profile\n"
+    expect "%"
+    send "mv /tmp/profile /n/newfs/usr/glenda/lib/profile\n"
+    expect "%"
+    send "exit\n"
+    expect "Task to do"
+
     send "finish\n"
     expect "done halting"
   '';
@@ -223,16 +269,6 @@ let
     send "local!/dev/${disks.final}/fscache\n"
     expect "user"
     send "\n"
-    expect "%"
-    send "9fs 9fat\n"
-    expect "%"
-    send "sed 's/${disks.inst}/${disks.final}/g' /n/9/plan9.ini > /tmp/plan9.ini\n"
-    expect "%"
-    send "cp /tmp/plan9.ini /n/9/plan9.ini\n"
-    expect "%"
-    send "sed '/#m/d' /usr/glenda/lib/profile > /tmp/profile\n"
-    expect "%"
-    send "mv /tmp/profile /usr/glenda/lib/profile\n"
     expect "%"
     send "fshalt\n"
     expect "done halting"
@@ -298,6 +334,12 @@ stdenv.mkDerivation rec {
             TARGET="tmp.qcow2" ${expectScript}
             mv tmp.qcow2 $out/9front.qcow2
           '';
+      gefs = ''
+        mkdir -p $out
+        qemu-img create -f qcow2 tmp.qcow2 ${size}
+        TARGET="tmp.qcow2" ${expectScript}
+        mv tmp.qcow2 $out/9front.qcow2
+      '';
     }
     ."${fs}";
 
