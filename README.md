@@ -43,7 +43,7 @@ Instructions for using rio for first timers may be found in the
 
 ## Tunables
 
-This flake also provides scripts for using cwfs instead of hjfs and
+This flake also provides scripts for using cwfs or gefs instead of hjfs and
 also is capable of running the arm64 virtual machines of 9front as well.
 
 These different configurations are exposed via different packages, the convention
