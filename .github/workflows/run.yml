@@ -1,0 +1,16 @@
+name: run
+on:
+  workflow_dispatch:
+
+jobs:
+  basic-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: basic
+        run: |
+          nix run '.#setup-vm'
+          response=$(echo 'echo $sysname' | nix run '.#run-vm' -- -nogui)
+          echo $response
+          if [ $response != "cirno" ]; then exit 12; fi
