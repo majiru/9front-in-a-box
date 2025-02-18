@@ -24,6 +24,7 @@ var (
 	ubootFlag    = flag.String("uboot", "u-boot.bin", "uboot binary for arm64")
 	qpathFlag    = flag.String("qpath", "", "location of qemu binaries")
 	drawtermFlag = flag.String("dt", "drawterm", "drawterm binary")
+	nogui        = flag.Bool("nogui", false, "disable the GUI")
 )
 
 func qemuCmd() []string {
@@ -131,7 +132,19 @@ func main() {
 	}()
 	go func() {
 		time.Sleep(2 * time.Second)
-		exec.Command(*drawtermFlag, "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
+		if *nogui {
+			cmd := exec.Command(*drawtermFlag, "-G", "-r", ".", "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "service=cpu rc -lI")
+			cmd.Env = append(cmd.Env, "PASS=password")
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			err := cmd.Run()
+			if err != nil {
+				log.Println(err)
+			}
+		} else {
+			exec.Command(*drawtermFlag, "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
+		}
 		exitch <- struct{}{}
 	}()
 	<-exitch
