@@ -122,6 +122,7 @@ func main() {
 	exp.Send("ip/ipconfig ether /net/ether0\n")
 	exp.Expect(regexp.MustCompile("%"), -1)
 	exp.Send("aux/listen1 -t 'tcp!*!17019' /rc/bin/service/tcp17019 &\n")
+	exp.Expect(regexp.MustCompile("listen started"), -1)
 
 	exitch := make(chan struct{})
 	go func() {
