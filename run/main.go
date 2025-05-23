@@ -134,7 +134,7 @@ func main() {
 	go func() {
 		time.Sleep(2 * time.Second)
 		if *nogui {
-			cmd := exec.Command(*drawtermFlag, "-G", "-r", ".", "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "service=cpu rc -lI")
+			cmd := exec.Command(*drawtermFlag, "-G", "-r", ".", "-u", "glenda", "-h", "127.0.0.1", "-a", "127.0.0.1", "-c", "service=cpu rc -lI")
 			cmd.Env = append(cmd.Env, "PASS=password")
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout
@@ -144,7 +144,7 @@ func main() {
 				log.Println(err)
 			}
 		} else {
-			exec.Command(*drawtermFlag, "-u", "glenda", "-h", "localhost", "-a", "localhost", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
+			exec.Command(*drawtermFlag, "-u", "glenda", "-h", "127.0.0.1", "-a", "127.0.0.1", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
 		}
 		exitch <- struct{}{}
 	}()
