@@ -54,15 +54,10 @@ may use `run-vm-cwfs-arm64`.
 ### Drawterm
 
 Drawterm is the graphical program used to connect to the virtual machine.
-This flake will use a copy of drawterm from nixpkgs that is built for
-X11 and pulseaudio. Nixpkgs also contains a drawterm build (`drawterm-wayland`) for wayland
-and pipewire. The drawterm binary used by `run-vm` may be changed by passing a `-dt` flag.
+This flake will attempt to launch the correct drawerm binary based on
+`$XDG_SESSION_TYPE`, however this will not cover all uses. You can
+overwrite the drawterm binary used with the `-dt` argument to run-vm:
 
 ```
- # Use the wayland drawterm
- nix-shell -p drawterm-wayland
- # or with nix shell
- nix shell 'nixpkgs#drawterm-wayland'
-
  nix run 'github:majiru/9front-in-a-box#run-vm' -- -dt drawterm
 ```

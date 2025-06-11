@@ -72,11 +72,16 @@ let
     };
   }) allvm;
 
+  extra = {
+    drawterm = callPackage (./drawterm.nix) { };
+  };
+
   mkrun =
     { vm, arch }:
     callPackage (./script.nix) {
       inherit run;
       inherit vm arch;
+      drawterm = extra.drawterm;
     };
 
   allrun = map (a: {
@@ -87,7 +92,7 @@ let
     };
   }) allvm;
 
-  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun));
+  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // extra;
 in
 {
   vm9 = pkgs;
