@@ -87,11 +87,7 @@ let
     };
   }) allvm;
 
-  mame = {
-    mame = prev.libsForQt5.callPackage (./mame) { };
-  };
-
-  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // mame;
+  pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun));
 in
 {
   vm9 = pkgs;
