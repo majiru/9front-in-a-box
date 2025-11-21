@@ -10,7 +10,7 @@
   fs ? "hjfs",
   size ? "50G",
   arch ? "amd64",
-  release ? "11091",
+  release ? "11321",
   sourceType ?
     {
       amd64 = "qcow2";
@@ -23,9 +23,9 @@
     url = "${sourceUrl}/9front-${release}.${arch}.${sourceType}.gz";
     hash =
       {
-        amd64 = "sha256-bfgHrjDwBLiqfR7IA7ptIys48OqyS3f2NcxAjpwBSRE=";
-        arm64 = "sha256-hSxS9WkKDZhCPyFNhilhTmKbzUa2gPIy468zOM176Iw=";
-        "386" = "sha256-5jkhEyBS/10sC7UH0iIfAkvHC7w1EpmEG82MO3IvWM8=";
+        amd64 = "sha256-/ipmSsX2DH5XI1ApSvavcz1PB2ye/5fi5frI1MFaVxU=";
+        arm64 = "sha256-nun/DFDaJS+FLSiDc3V6JCu7L4lOB7zXZYc1nRhCZTM=";
+        "386" = "sha256-7QW5f8l3rMfdQZ21dvvo6MAuqvfaVgLVkXCHXmbZ1pk=";
       }
       ."${arch}";
   },
