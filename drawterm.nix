@@ -2,19 +2,17 @@
   writeScriptBin,
   drawterm,
   drawterm-wayland,
+  rc-9front,
 }:
 writeScriptBin "drawterm" ''
-  #!/usr/bin/env sh
+  #!${rc-9front}/bin/rc
 
-  case $XDG_SESSION_TYPE in
-    wayland)
-        exec ${drawterm-wayland}/bin/drawterm $*
-        ;;
-    x11)
-        exec ${drawterm}/bin/drawterm $*
-        ;;
-    *)
-        exec ${drawterm}/bin/drawterm $*
-        ;;
-  esac
+  switch($XDG_SESSION_TYPE){
+  case 'wayland'
+    exec ${drawterm-wayland}/bin/drawterm $*
+  case 'x11'
+    exec ${drawterm}/bin/drawterm $*
+  case *
+    exec ${drawterm}/bin/drawterm $*
+  }
 ''
