@@ -7,19 +7,21 @@
   qemu,
   drawterm,
 
-  arch ? "amd64",
+  arch,
+  fs,
+
   create ? "no",
 }:
 let
   uboot = pkgsCross.aarch64-multiplatform.ubootQemuAarch64;
+  disk = "9front.${fs}.${arch}.qcow2";
 in
 writeScriptBin "run.sh" ''
   #!${rc}/bin/rc
 
-  create=${create}
-  if(~ $create 'yes'){
-    ${run}/bin/run -arch ${arch} -create ${vm}/9front.qcow2
+  if(~ ${create} 'yes'){
+    ${qemu}/bin/qemu-img create -f qcow2 -F qcow2 -o 'backing_file='${vm}/9front.qcow2 ${disk}
     exit
   }
-  ${run}/bin/run -qpath ${qemu}/bin -uboot ${uboot}/u-boot.bin -arch ${arch} -dt ${drawterm}/bin/drawterm $*
+  ${run}/bin/run -qpath ${qemu}/bin -uboot ${uboot}/u-boot.bin -arch ${arch} -disk ${disk} -dt ${drawterm}/bin/drawterm $*
 ''

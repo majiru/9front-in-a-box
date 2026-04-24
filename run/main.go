@@ -18,16 +18,16 @@ import (
 var (
 	ramFlag      = flag.String("m", "4G", "memory for qemu virtual machine")
 	cpuFlag      = flag.String("cpu", "4", "number of cored for virtual machines")
-	createFlag   = flag.String("create", "", "create a new 9front.qcow2 in the cwd ")
 	debugFlag    = flag.Bool("debug", false, "enable debug output")
 	archFlag     = flag.String("arch", "amd64", "architechture of vm")
+	diskFlag     = flag.String("disk", "", "qcow2 vm disk")
 	ubootFlag    = flag.String("uboot", "u-boot.bin", "uboot binary for arm64")
 	qpathFlag    = flag.String("qpath", "", "location of qemu binaries")
 	drawtermFlag = flag.String("dt", "drawterm", "drawterm binary")
-	nogui        = flag.Bool("nogui", false, "disable the GUI")
+	noguiFlag    = flag.Bool("nogui", false, "disable the GUI")
 )
 
-func qemuCmd() []string {
+func qemuCmd(qcow string) []string {
 	m := map[string][]string{
 		"amd64": {
 			filepath.Join(*qpathFlag, "qemu-system-x86_64"),
@@ -38,9 +38,9 @@ func qemuCmd() []string {
 			*ramFlag,
 			"-smp",
 			*cpuFlag,
-			"-drive",
-			"file=9front.amd64.qcow2,media=disk,if=virtio,index=0",
 			"-nographic",
+			"-drive",
+			"media=disk,if=virtio,index=0",
 		},
 		"arm64": {
 			filepath.Join(*qpathFlag, "qemu-system-aarch64"),
@@ -54,13 +54,13 @@ func qemuCmd() []string {
 			*cpuFlag,
 			"-bios",
 			*ubootFlag,
-			"-drive",
-			"file=9front.arm64.qcow2,if=none,id=disk",
 			"-device",
 			"virtio-blk-pci-non-transitional,drive=disk",
 			"-nic",
 			"user,hostfwd=tcp::17019-:17019,model=virtio-net-pci-non-transitional",
 			"-nographic",
+			"-drive",
+			"if=none,id=disk",
 		},
 		"386": {
 			filepath.Join(*qpathFlag, "qemu-system-x86_64"),
@@ -71,35 +71,34 @@ func qemuCmd() []string {
 			*ramFlag,
 			"-smp",
 			*cpuFlag,
-			"-drive",
-			"file=9front.386.qcow2,media=disk,if=virtio,index=0",
 			"-nographic",
+			"-drive",
+			"media=disk,if=virtio,index=0",
 		},
 	}
 	r, ok := m[*archFlag]
 	if !ok {
 		log.Fatal("unsupported arch")
 	}
+	r[len(r)-1] = r[len(r)-1] + ",file=" + qcow
 	return r
 }
 
 func main() {
 	flag.Parse()
 
-	qcow := "9front." + *archFlag + ".qcow2"
-	if *createFlag != "" {
-		err := exec.Command("qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-o", "backing_file="+*createFlag, qcow).Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-		os.Exit(0)
+	var qcow string
+	if *diskFlag == "" {
+		qcow = "9front." + *archFlag + ".qcow2"
+	} else {
+		qcow = *diskFlag
 	}
 	if _, err := os.Stat(qcow); err != nil {
 		fmt.Fprintf(os.Stderr, "could not find %s\n", qcow)
 		os.Exit(1)
 	}
 
-	cm := strings.Join(qemuCmd(), " ")
+	cm := strings.Join(qemuCmd(qcow), " ")
 	if *debugFlag {
 		fmt.Println(cm)
 	}
@@ -137,7 +136,7 @@ func main() {
 	}()
 	go func() {
 		time.Sleep(2 * time.Second)
-		if *nogui {
+		if *noguiFlag {
 			cmd := exec.Command(*drawtermFlag, "-G", "-r", ".", "-u", "glenda", "-h", "127.0.0.1", "-a", "127.0.0.1", "-c", "service=cpu rc -lI")
 			cmd.Env = append(cmd.Env, "PASS=password")
 			cmd.Stdin = os.Stdin

@@ -22,36 +22,35 @@ let
       name ? "vm-${fs}-${arch}",
     }:
     {
-      pkg = callPackage ./vm.nix { inherit fs arch; };
+      value = callPackage ./vm.nix { inherit fs arch; };
       inherit fs arch name;
     };
 
   allvm = [
-    {
-      name = "vm";
-      value = mkvm { };
-      arch = "amd64";
-    }
+    (mkvm { name = "vm"; })
   ]
-  ++ (map (a: {
-    name = "vm-${a}";
-    value = mkvm { fs = a; };
-    arch = "amd64";
-  }) fsOpts)
-  ++ (map (a: {
-    name = "vm-${a}";
-    value = mkvm { arch = a; };
-    arch = a;
-  }) archOpts)
+  ++ (map (
+    a:
+    (mkvm {
+      name = "vm-${a}";
+      fs = a;
+    })
+  ) fsOpts)
+  ++ (map (
+    a:
+    (mkvm {
+      name = "vm-${a}";
+      arch = a;
+    })
+  ) archOpts)
   ++ (map
-    (a: {
-      name = "vm-${a.fs}-${a.arch}";
-      value = mkvm {
+    (
+      a:
+      (mkvm {
         inherit (a) fs;
         inherit (a) arch;
-      };
-      inherit (a) arch;
-    })
+      })
+    )
     (
       prev.lib.attrsets.cartesianProduct {
         fs = fsOpts;
@@ -60,39 +59,30 @@ let
     )
   );
 
-  mksetup =
-    { vm, arch }:
-    callPackage ./script.nix {
-      create = "yes";
-      inherit run vm arch;
-    };
-
-  allsetup = map (a: {
-    name = "setup-${a.name}";
-    value = mksetup {
-      vm = a.value;
-      inherit (a) arch;
-    };
-  }) allvm;
-
   extra = {
     drawterm = callPackage ./drawterm.nix { };
   };
 
-  mkrun =
-    { vm, arch }:
+  vm2script =
+    {
+      vm,
+      create ? "no",
+    }:
     callPackage ./script.nix {
-      inherit run;
-      inherit vm arch;
-      drawterm = extra.drawterm;
+      vm = vm.value;
+      inherit (extra) drawterm;
+      inherit (vm) arch fs;
+      inherit run create;
     };
+
+  allsetup = map (a: {
+    name = "setup-${a.name}";
+    value = vm2script { vm = a; create = "yes"; };
+  }) allvm;
 
   allrun = map (a: {
     name = "run-${a.name}";
-    value = mkrun {
-      vm = a.value;
-      inherit (a) arch;
-    };
+    value = vm2script { vm = a; };
   }) allvm;
 
   pkgs = (builtins.listToAttrs (allvm ++ allsetup ++ allrun)) // extra;
