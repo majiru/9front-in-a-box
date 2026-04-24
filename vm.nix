@@ -10,7 +10,7 @@
   fs ? "hjfs",
   size ? "50G",
   arch ? "amd64",
-  release ? "11321",
+  release ? "11554",
   sourceType ?
     {
       amd64 = "qcow2";
@@ -18,14 +18,14 @@
       "386" = "iso";
     }
     .${arch},
-  sourceUrl ? "https://iso.only9fans.com/release",
+  sourceUrl ? "https://build.9front.org/release",
   source ? fetchurl {
     url = "${sourceUrl}/9front-${release}.${arch}.${sourceType}.gz";
     hash =
       {
-        amd64 = "sha256-/ipmSsX2DH5XI1ApSvavcz1PB2ye/5fi5frI1MFaVxU=";
-        arm64 = "sha256-nun/DFDaJS+FLSiDc3V6JCu7L4lOB7zXZYc1nRhCZTM=";
-        "386" = "sha256-7QW5f8l3rMfdQZ21dvvo6MAuqvfaVgLVkXCHXmbZ1pk=";
+        amd64 = "sha256-DkoICAIMeEX4VFmbkQ06Y+5Wy/PrzQODMuIrfBonI2E=";
+        arm64 = "sha256-9tQGzyHVDVlFYT3JKdth4F0nPzbwkhbdx/gXqZ6sjDQ=";
+        "386" = "sha256-5QdVmxuVduVVzPs+3iTVy7/gxZW5CQWSz1dsauSZFPU=";
       }
       ."${arch}";
   },
