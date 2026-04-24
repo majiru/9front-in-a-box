@@ -13,53 +13,56 @@ let
     "386"
   ];
 
-  run = callPackage (./run) { };
+  run = callPackage ./run { };
 
   mkvm =
     {
       fs ? "hjfs",
       arch ? "amd64",
+      name ? "vm-${fs}-${arch}",
     }:
-    callPackage (./vm.nix) { inherit fs arch; };
+    {
+      pkg = callPackage ./vm.nix { inherit fs arch; };
+      inherit fs arch name;
+    };
 
-  allvm =
-    [
-      {
-        name = "vm";
-        value = mkvm { };
-        arch = "amd64";
-      }
-    ]
-    ++ (map (a: {
-      name = "vm-${a}";
-      value = mkvm { fs = a; };
+  allvm = [
+    {
+      name = "vm";
+      value = mkvm { };
       arch = "amd64";
-    }) fsOpts)
-    ++ (map (a: {
-      name = "vm-${a}";
-      value = mkvm { arch = a; };
-      arch = a;
-    }) archOpts)
-    ++ (map
-      (a: {
-        name = "vm-${a.fs}-${a.arch}";
-        value = mkvm {
-          inherit (a) fs;
-          inherit (a) arch;
-        };
+    }
+  ]
+  ++ (map (a: {
+    name = "vm-${a}";
+    value = mkvm { fs = a; };
+    arch = "amd64";
+  }) fsOpts)
+  ++ (map (a: {
+    name = "vm-${a}";
+    value = mkvm { arch = a; };
+    arch = a;
+  }) archOpts)
+  ++ (map
+    (a: {
+      name = "vm-${a.fs}-${a.arch}";
+      value = mkvm {
+        inherit (a) fs;
         inherit (a) arch;
-      })
-      (
-        prev.lib.attrsets.cartesianProduct {
-          fs = fsOpts;
-          arch = archOpts;
-        }
-      )
-    );
+      };
+      inherit (a) arch;
+    })
+    (
+      prev.lib.attrsets.cartesianProduct {
+        fs = fsOpts;
+        arch = archOpts;
+      }
+    )
+  );
 
   mksetup =
     { vm, arch }:
-    callPackage (./script.nix) {
+    callPackage ./script.nix {
       create = "yes";
       inherit run vm arch;
     };
@@ -73,12 +76,12 @@ let
   }) allvm;
 
   extra = {
-    drawterm = callPackage (./drawterm.nix) { };
+    drawterm = callPackage ./drawterm.nix { };
   };
 
   mkrun =
     { vm, arch }:
-    callPackage (./script.nix) {
+    callPackage ./script.nix {
       inherit run;
       inherit vm arch;
       drawterm = extra.drawterm;
