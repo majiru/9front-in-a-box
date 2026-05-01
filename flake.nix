@@ -2,7 +2,7 @@
   description = "A flake for running virtual 9front systems";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "nixpkgs/25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
