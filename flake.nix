@@ -16,5 +16,6 @@
       inherit self nixpkgs;
       name = "vm9";
       overlay = ./overlay.nix;
+      shell = ./shell.nix;
     };
 }
