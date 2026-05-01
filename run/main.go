@@ -138,7 +138,7 @@ func main() {
 		time.Sleep(2 * time.Second)
 		if *noguiFlag {
 			cmd := exec.Command(*drawtermFlag, "-G", "-r", ".", "-u", "glenda", "-h", "127.0.0.1", "-a", "127.0.0.1", "-c", "service=cpu rc -lI")
-			cmd.Env = append(cmd.Env, "PASS=password")
+			cmd.Env = append(cmd.Environ(), "PASS=password")
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
