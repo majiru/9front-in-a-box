@@ -26,7 +26,7 @@ let
       inherit fs arch name;
     };
 
-  allvm = [
+  allrelvm = [
     (mkvm { name = "vm"; })
   ]
   ++ (map (
@@ -63,6 +63,20 @@ let
     drawterm = callPackage ./drawterm.nix { };
   };
 
+  allvm =
+    allrelvm
+    ++ map (a: {
+      name = "${a.name}-custom";
+      inherit (a) fs arch;
+      value = callPackage ./vm.nix {
+        inherit (a) fs arch;
+        source = final.fetchurl {
+          url = builtins.getEnv "SOURCE9";
+          sha256 = builtins.getEnv "HASH9";
+        };
+      };
+    }) allrelvm;
+
   vm2script =
     {
       vm,
@@ -77,7 +91,10 @@ let
 
   allsetup = map (a: {
     name = "setup-${a.name}";
-    value = vm2script { vm = a; create = "yes"; };
+    value = vm2script {
+      vm = a;
+      create = "yes";
+    };
   }) allvm;
 
   allrun = map (a: {
