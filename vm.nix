@@ -239,6 +239,8 @@ let
     expect "%"
     send "mv /tmp/profile /n/newfs/usr/glenda/lib/profile\n"
     expect "%"
+    send "cp /sys/lib/dist/ndb/local /n/newfs/lib/ndb/local\n"
+    expect "%"
     send "exit\n"
     expect "Task to do"
 
