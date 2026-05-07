@@ -147,7 +147,10 @@ func main() {
 				log.Println(err)
 			}
 		} else {
-			exec.Command(*drawtermFlag, "-u", "glenda", "-h", "127.0.0.1", "-a", "127.0.0.1", "-c", "rc", "-c", "console=() service=terminal rc -l").Run()
+			cmd := exec.Command(*drawtermFlag, "-u", "glenda", "-h", "127.0.0.1", "-a", "127.0.0.1", "-c", "rc", "-c", "console=() service=terminal rc -l")
+			cmd.Env = append(cmd.Environ(), "PASS=password")
+			cmd.Run()
+
 		}
 		exitch <- struct{}{}
 	}()
