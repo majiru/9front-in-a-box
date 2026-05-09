@@ -191,11 +191,6 @@ let
     send "copydist\n"
     expect "Task to do"
 
-    send "ndbsetup\n"
-    expect "sysname"
-    send "\n"
-    expect "Task to do"
-
     send "tzsetup\n"
     expect "Time Zone"
     expect "W-SU"
@@ -238,8 +233,6 @@ let
     send "sed '/#m/d' /n/newfs/usr/glenda/lib/profile > /tmp/profile\n"
     expect "%"
     send "mv /tmp/profile /n/newfs/usr/glenda/lib/profile\n"
-    expect "%"
-    send "cp /sys/lib/dist/ndb/local /n/newfs/lib/ndb/local\n"
     expect "%"
     send "exit\n"
     expect "Task to do"
