@@ -35,7 +35,7 @@ let
   qbin =
     {
       amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=./9front.qcow2,media=disk,if=virtio,index=0 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
-      arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin  -drive file=./9front.qcow2,if=none,id=disk1 -drive file=$env(TARGET),index=1,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk1  -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
+      arm64 = "qemu-system-aarch64 -M virt,gic-version=3,highmem-ecam=off -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin  -drive file=./9front.qcow2,if=none,id=disk1 -drive file=$env(TARGET),index=1,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk1  -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
       "386" =
         "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=./9front.iso,media=cdrom -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
     }
@@ -43,7 +43,7 @@ let
   qbin2 =
     {
       amd64 = "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
-      arm64 = "qemu-system-aarch64 -M virt-2.12,gic-version=3 -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin -drive file=$env(TARGET),index=0,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
+      arm64 = "qemu-system-aarch64 -M virt,gic-version=3,highmem-ecam=off -cpu cortex-a72 -m 4G -smp 4 -bios ${uboot}/u-boot.bin -drive file=$env(TARGET),index=0,media=disk,if=none,id=disk2 -device virtio-blk-pci-non-transitional,drive=disk2 -nographic";
       "386" =
         "qemu-system-x86_64 -enable-kvm -m 2G -smp 4 -drive file=$env(TARGET),index=1,media=disk,if=virtio -nographic -nic none";
     }

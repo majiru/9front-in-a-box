@@ -45,7 +45,7 @@ func qemuCmd(qcow string) []string {
 		"arm64": {
 			filepath.Join(*qpathFlag, "qemu-system-aarch64"),
 			"-M",
-			"virt-2.12,gic-version=3",
+			"virt,gic-version=3,highmem-ecam=off",
 			"-cpu",
 			"cortex-a72",
 			"-m",
