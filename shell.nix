@@ -25,5 +25,15 @@ pkgs.mkShellNoCC {
       nix run '.#setup-vm-cwfs-amd64'
       echo 'cd / && sysupdate && cd /sys/src && mk nuke && mk install' | nix run '.#run-vm-cwfs-amd64' --impure -- -nogui
     }
+    newpatchtest() {
+      latest
+      amd64
+      nix run '.#setup-vm-cwfs-amd64-custom' --impure
+      echo 'cd / && { webfs && hget '$1' | patch -p1 } && cd /sys/src && mk nuke && mk install && mk nuke && mk install && mk nuke && mk install && mk test' | nix run '.#run-vm-cwfs-amd64' --impure -- -nogui
+    }
+    relpatchtest() {
+      nix run '.#setup-vm-cwfs-amd64'
+      echo 'cd / && { webfs && hget '$1' | patch -p1 } && cd /sys/src && mk nuke && mk install && mk nuke && mk install && mk nuke && mk install && mk test' | nix run '.#run-vm-cwfs-amd64' --impure -- -nogui
+    }
   '';
 }
