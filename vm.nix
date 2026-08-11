@@ -68,8 +68,13 @@ let
       amd64 = ''
         expect "bootfile="
         send "\n"
+        sleep 0.3
         expect ">"
         send "console=0\n"
+        sleep 0.3
+        expect ">"
+        send "vgasize=text\n"
+        sleep 0.3
         expect ">"
         send "boot\n"
       '';
@@ -78,10 +83,13 @@ let
         expect "bootfile="
         send "\n"
         expect ">"
+        sleep 0.3
         send "console=0\n"
         expect ">"
+        sleep 0.3
         send "vgasize=text\n"
         expect ">"
+        sleep 0.3
         send "boot\n"
       '';
     }
@@ -311,28 +319,28 @@ stdenv.mkDerivation rec {
       cwfs = ''
         mkdir -p $out
         qemu-img create -f qcow2 tmp.qcow2 ${size}
-        TARGET="tmp.qcow2" ${expectScript}
-        TARGET="tmp.qcow2" ${fixCwfsConfig}
+        TARGET="tmp.qcow2" ${expectScript} | tr -d '\r'
+        TARGET="tmp.qcow2" ${fixCwfsConfig} | tr -d '\r'
         mv tmp.qcow2 $out/9front.qcow2
       '';
       hjfs =
         if arch != "386" then
           ''
             mkdir -p $out
-            TARGET="9front.qcow2" ${fixHjfsConfig}
+            TARGET="9front.qcow2" ${fixHjfsConfig} | tr -d '\r'
             mv 9front.qcow2 $out/
           ''
         else
           ''
             mkdir -p $out
             qemu-img create -f qcow2 tmp.qcow2 ${size}
-            TARGET="tmp.qcow2" ${expectScript}
+            TARGET="tmp.qcow2" ${expectScript} | tr -d '\r'
             mv tmp.qcow2 $out/9front.qcow2
           '';
       gefs = ''
         mkdir -p $out
         qemu-img create -f qcow2 tmp.qcow2 ${size}
-        TARGET="tmp.qcow2" ${expectScript}
+        TARGET="tmp.qcow2" ${expectScript} | tr -d '\r'
         mv tmp.qcow2 $out/9front.qcow2
       '';
     }
